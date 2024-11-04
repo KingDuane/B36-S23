@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<title>0xB36S23</title>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: black;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            cursor: pointer;
+        }
+        #grid {
+            display: grid;
+            gap: 2px;
+        }
+        input[type="radio"] {
+            margin: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: black;
+            border: 1px solid white;
+            cursor: pointer;
+        }
+        input[type="radio"]:checked {
+            background: white;
+        }
+        .inverted {
+            background: white !important;
+        }
+        .inverted input[type="radio"] {
+            border-color: black;
+            background: white;
+        }
+        .inverted input[type="radio"]:checked {
+            background: black;
+        }
+    </style>
+</head>
+<body onclick="toggleTheme()">
+    <div id="grid"></div>
+    <script>
+        let rows, cols;
+        let grid = [];
+        let isInverted = false;
+
+        function initGrid() {
+            rows = Math.floor(window.innerHeight / 14);
+            cols = Math.floor(window.innerWidth / 14);
+            
+            const gridElement = document.getElementById('grid');
+            gridElement.style.gridTemplateColumns = `repeat(${cols}, 12px)`;
+            
+            grid = Array(rows).fill().map(() => Array(cols).fill(false));
+            gridElement.innerHTML = '';
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `cell-${i}-${j}`;
+                    if (Math.random() < 0.3) {
+                        radio.checked = true;
+                        grid[i][j] = true;
+                    }
+                    gridElement.appendChild(radio);
+                }
+            }
+        }
+
+        function countNeighbors(r, c) {
+            let count = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    if (i === 0 && j === 0) continue;
+                    const newRow = (r + i + rows) % rows;
+                    const newCol = (c + j + cols) % cols;
+                    if (grid[newRow][newCol]) count++;
+                }
+            }
+            return count;
+        }
+
+        function update() {
+            const newGrid = Array(rows).fill().map(() => Array(cols).fill(false));
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const neighbors = countNeighbors(i, j);
+                    if (grid[i][j]) {
+                        newGrid[i][j] = neighbors === 2 || neighbors === 3;
+                    } else {
+                        newGrid[i][j] = neighbors === 3 || neighbors === 6;
+                    }
+                }
+            }
+            
+            grid = newGrid;
+            
+            const radios = document.querySelectorAll('input[type="radio"]');
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    radios[i * cols + j].checked = grid[i][j];
+                }
+            }
+        }
+
+        function toggleTheme() {
+            isInverted = !isInverted;
+            document.body.classList.toggle('inverted');
+            initGrid();
+        }
+
+        window.onload = () => {
+            initGrid();
+            setInterval(update, 100);
+        };
+
+        window.onresize = initGrid;
+    </script>
+</body>
+</html>
